@@ -17,21 +17,7 @@ python get_introgressed_regions.py -f sims.ms -jt -total -regions
 
 ## Options
 
-### `-jt`
-Print the time of coalescence with the archaic chromosome.  This can be used to make sure the introgressed regions can be well-separated from non-introgressed regions.
-
-```
-python get_introgressed_regions.py -f sims.ms -jt -total -regions | grep JOIN > joins.txt
-```
-
-Plot with R code:
-```
-library(data.table)
-dt = fread('joins.txt')
-hist(dt[, V2], breaks=100, col='black')
-```
-
-### -total
+#### -total
 Print the total amount of introgressed sequence per chromosome (i.e., haplotype).
 
 ```
@@ -49,14 +35,35 @@ TOTAL pop_1 chrom_9 34165
 TOTAL pop_1 chrom_10 75298
 ```
 
-### -regions
-Print each introgressed haplotype in bed format.  The columns are:
+#### -regions
+Print each introgressed haplotype in bed format.  Relevant variables are:
+* sim: the simulation number (e.g., the command above generates three simulations)
+* pop: the population number, starting from 1.  The command above generates two pops, but only the non-archaic pop will be reported.
+* chrom: the ms "chromosome" that has the introgressed haplotype.
 
-* **sim_pop_chrom**:
-* **start**:
-* **stop**:
-* **chrom**:
-* **pop**:
-* **sim_tag**:
-* **iteration_tag**:
-* **intr_regions_tag**:
+The columns are:
+
+* **sim_pop_chrom**: A tag in the "chromosome" spot for a bed file, with the simulation, population and chromosome numbers
+* **start**: Start of introgressed haplotype
+* **stop**: End of introgressed haplotype
+* **chrom**: The ms chromosome
+* **pop**: The ms population
+* **sim_tag**: The ms simulation
+* **iteration_tag**: The iteration tag, if given with -iter (useful for tagging different types of simulations).
+* **intr_regions_tag**: The text "INTR", for grepping the output.
+
+
+#### `-jt`
+Print the time of coalescence with the archaic chromosome.  This can be used to make sure the introgressed regions can be well-separated from non-introgressed regions.
+
+```
+python get_introgressed_regions.py -f sims.ms -jt -total -regions | grep JOIN > joins.txt
+```
+
+Plot with R code:
+```
+library(data.table)
+dt = fread('joins.txt')
+hist(dt[, V2], breaks=100, col='black')
+```
+
