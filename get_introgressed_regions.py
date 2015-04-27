@@ -199,12 +199,12 @@ if __name__ == "__main__":
         if flag == '-ej' and str(args.arc_pop_ms) == ms_params[i+2]:
             join_time = float(ms_params[i+1])
             join_time_count += 1
-            print "Archaic population join time:", join_time
+            # print "Archaic population join time:", join_time
             pass
         if flag == '-em' and str(args.arc_pop_ms) == ms_params[i+3]:
             parsed_target_pop = int(ms_params[i+2])
             introgression_times[parsed_target_pop].append(float(ms_params[i+1]))
-            print introgression_times
+            # print introgression_times
             mig_pop_count += 1
             pass
         pass
@@ -333,13 +333,13 @@ if __name__ == "__main__":
         if args.report_intr_regions:
 
             if regions_first_line:
-                print '\t'.join(['region_chrom_tag', 'start', 'stop', 'chrom', 'pop', 'region_tag', 'iteration_tag', 'intr_regions_tag'])
+                print '\t'.join(['sim_pop_chrom', 'start', 'stop', 'chrom', 'pop', 'sim_tag', 'iteration_tag', 'intr_regions_tag'])
                 regions_first_line = False
                 pass
 
             for chrom in chr_intr_regions:
                 for (s,e) in chr_intr_regions[chrom]:
-                    print 'c_%d_%d_%d\t%d\t%d\tchrom_%d\tpop_%d\ts_%d\t%s\tINTR' % (sample, pop_mapping[chrom], chrom, s, e, chrom, pop_mapping[chrom], sample, args.iteration)
+                    print 'c_%d_%d_%d\t%d\t%d\tchrom_%d\tpop_%d\treg_%d\t%s\tINTR' % (sample, pop_mapping[chrom], chrom, s, e, chrom, pop_mapping[chrom], sample, args.iteration)
                     pass
                 pass
             pass
