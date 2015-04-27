@@ -37,9 +37,9 @@ TOTAL pop_1 chrom_10 75298
 
 #### -regions
 Print each introgressed haplotype in bed format.  Relevant variables are:
-* sim: the simulation number (e.g., the command above generates three simulations)
-* pop: the population number, starting from 1.  The command above generates two pops, but only the non-archaic pop will be reported.
-* chrom: the ms "chromosome" that has the introgressed haplotype.
+* **sim**: the simulation number (e.g., the command above generates three simulations)
+* **pop**: the population number, starting from 1.  The command above generates two pops, but only the non-archaic pop will be reported.
+* **chrom**: the ms "chromosome" that has the introgressed haplotype.
 
 The columns are:
 
@@ -52,6 +52,20 @@ The columns are:
 * **iteration_tag**: The iteration tag, if given with -iter (useful for tagging different types of simulations).
 * **intr_regions_tag**: The text "INTR", for grepping the output.
 
+```
+python get_introgressed_regions.py -f sims.ms  -regions | head
+
+sim_pop_chrom	start	stop	chrom	pop	sim_tag	iteration_tag	intr_regions_tag
+c_0_1_2	98712	98893	chrom_2	pop_1	reg_0	.	INTR
+c_0_1_3	98712	100000	chrom_3	pop_1	reg_0	.	INTR
+c_0_1_4	98712	98893	chrom_4	pop_1	reg_0	.	INTR
+c_0_1_5	98712	98893	chrom_5	pop_1	reg_0	.	INTR
+c_0_1_7	98712	98893	chrom_7	pop_1	reg_0	.	INTR
+c_1_1_1	44591	49381	chrom_1	pop_1	reg_1	.	INTR
+c_1_1_1	56966	64215	chrom_1	pop_1	reg_1	.	INTR
+c_1_1_2	56241	64215	chrom_2	pop_1	reg_1	.	INTR
+c_1_1_2	95710	100000	chrom_2	pop_1	reg_1	.	INTR
+```
 
 #### `-jt`
 Print the time of coalescence with the archaic chromosome.  This can be used to make sure the introgressed regions can be well-separated from non-introgressed regions.
