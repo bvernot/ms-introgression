@@ -81,3 +81,5 @@ dt = fread('joins.txt')
 hist(dt[, V2], breaks=100, col='black')
 ```
 
+Which should create a chart something like this:
+![join times chart](/figures/example_jt_hist.pdf)
