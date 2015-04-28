@@ -81,6 +81,6 @@ dt = fread('joins.txt')
 hist(dt[, V2], breaks=100, col='black')
 ```
 
-Which should create a chart something like this:
+Which should create a chart something like this. The x-axis is join times, and you want to have two clear and separated peaks:
 
 ![join times chart](/figures/example_jt_hist.png)
