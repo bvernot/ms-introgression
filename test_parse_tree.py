@@ -7,7 +7,7 @@ import argparse
 #import tables
 import re
 import math
-from Bio import Phylo
+#from Bio import Phylo
 from StringIO import StringIO
 from collections import Counter, defaultdict
 

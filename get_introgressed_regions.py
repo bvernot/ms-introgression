@@ -7,7 +7,7 @@ import argparse
 #import tables
 import re
 import math
-from Bio import Phylo
+#from Bio import Phylo
 from StringIO import StringIO
 from collections import Counter, defaultdict
 
@@ -65,26 +65,26 @@ def extract_introgressed_chrs_from_tree(ms_tree, arc_chrs, join_time, print_join
         pass
     return []
 
-def print_arc_join_time_from_tree(ms_tree, arc_chr, join_time, debug = False):
+# def print_arc_join_time_from_tree(ms_tree, arc_chr, join_time, debug = False):
 
-    # if len(args.arc_chrs) > 1:
-    #     print "I don't think print_arc_join_time_from_tree can handle more than one archaic chromosome?"
-    #     sys.exit(-1)
-    #     pass
+#     # if len(args.arc_chrs) > 1:
+#     #     print "I don't think print_arc_join_time_from_tree can handle more than one archaic chromosome?"
+#     #     sys.exit(-1)
+#     #     pass
     
-    handle = StringIO(ms_tree)
-    tree = Phylo.read(handle, "newick")
-    arc_node = list(tree.find_elements(terminal = True, confidence = arc_chr))[0]
-    #print tree.distance(tree.root, arc_node), join_time, arc_chr, 'root'
-    for c in tree.get_path(arc_node):
-        dist = tree.distance(c, arc_node)
-        leaves_in_clade = [int(n.confidence) for n in c.get_terminals()]
-        # if args.debug: print tree
-        # print dist, join_time, dist < join_time, dist + 1, join_time + 1
-        print '**' if dist < join_time and len(leaves_in_clade) > 2 else '  ', 'arc:', int(arc_node.confidence), '; num chrs on clade (inc arc):', len(leaves_in_clade), '; branch len to arc node:', dist, 'vs', join_time, '; chrs in clade:', leaves_in_clade
-        pass
+#     handle = StringIO(ms_tree)
+#     tree = Phylo.read(handle, "newick")
+#     arc_node = list(tree.find_elements(terminal = True, confidence = arc_chr))[0]
+#     #print tree.distance(tree.root, arc_node), join_time, arc_chr, 'root'
+#     for c in tree.get_path(arc_node):
+#         dist = tree.distance(c, arc_node)
+#         leaves_in_clade = [int(n.confidence) for n in c.get_terminals()]
+#         # if args.debug: print tree
+#         # print dist, join_time, dist < join_time, dist + 1, join_time + 1
+#         print '**' if dist < join_time and len(leaves_in_clade) > 2 else '  ', 'arc:', int(arc_node.confidence), '; num chrs on clade (inc arc):', len(leaves_in_clade), '; branch len to arc node:', dist, 'vs', join_time, '; chrs in clade:', leaves_in_clade
+#         pass
     
-    return
+#     return
 
 
 
@@ -129,9 +129,18 @@ if __name__ == "__main__":
         sys.exit(-1)
         pass
 
+    if 'macs' in ms_params[0] and not args.use_macs_chromosome_numbering:
+        print "Should you use -macs for correct parsing of macs format trees?"
+        print ms_params_line
+        sys.exit(-1)
+
     setattr(args, 'num_inds', int(ms_params[1]))
     # setattr(args, 'arc_chr', int(ms_params[1]))
-    setattr(args, 'howmany', int(ms_params[2]))
+    if args.use_macs_chromosome_numbering: 
+        setattr(args, 'howmany', sys.maxint)
+    else:
+        setattr(args, 'howmany', int(ms_params[2]))
+        pass
     ms_random_line = args.input_file.readline().strip()
     
     if args.pops == None and '-I' in ms_params:
@@ -196,7 +205,7 @@ if __name__ == "__main__":
 
     for i, flag in enumerate(ms_params):
         if args.debug and flag == '-ej': print flag, str(args.arc_pop), ms_params[i+2:i+4]
-        if flag == '-ej' and str(args.arc_pop_ms) == ms_params[i+2]:
+        if flag == '-ej' and (str(args.arc_pop_ms) == ms_params[i+2] or str(args.arc_pop_ms) == ms_params[i+3]):
             join_time = float(ms_params[i+1])
             join_time_count += 1
             # print "Archaic population join time:", join_time
@@ -223,7 +232,7 @@ if __name__ == "__main__":
 
     if args.debug: print 'getting pct arc per ind for %d chrs, with arc chr = %s, and target pop = %s (size %d)' % (args.num_inds, args.arc_chrs, target_chrs, len(all_target_chrs))
 
-    chr_strs = [i+1 for i in range(args.num_inds)]
+    chr_strs = [i+1-macs_chr_adjust for i in range(args.num_inds)]
     # print 'chr_avg_intr tot_intr avg_num_chrs target_bases reference_bases', ' '.join([str(k) for k in sorted(chr_strs)])
 
 
@@ -245,10 +254,18 @@ if __name__ == "__main__":
 
     chr_counts = dict.fromkeys(chr_strs, 0)
 
-    for sample in range(args.howmany):
-        while True:
-            if args.input_file.readline().strip().startswith('//'): break
+
+    for sample in xrange(args.howmany):
+
+        line = 'start'
+        while line != '':
+            #print sample, line
+            line = args.input_file.readline()
+            #print " ->", sample, line
+            if line.strip().startswith('//'): break
             pass
+
+        if line == '': break
 
         if args.debug: print "starting sample", sample
         if args.print_progress > 0 and sample % args.print_progress == 0:
