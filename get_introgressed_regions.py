@@ -122,6 +122,10 @@ if __name__ == "__main__":
     # get ms params
     ms_params_line = args.input_file.readline().strip()
     ms_params = ms_params_line.split()
+    if args.use_macs_chromosome_numbering:
+        ms_params = ms_params[1:]
+        pass
+    #print ms_params
 
     if not '-T' in ms_params:
         print "need to run ms with -T option!"
@@ -129,7 +133,7 @@ if __name__ == "__main__":
         sys.exit(-1)
         pass
 
-    if 'macs' in ms_params[0] and not args.use_macs_chromosome_numbering:
+    if 'macs' in ms_params_line and not args.use_macs_chromosome_numbering:
         print "Should you use -macs for correct parsing of macs format trees?"
         print ms_params_line
         sys.exit(-1)
@@ -138,10 +142,21 @@ if __name__ == "__main__":
     # setattr(args, 'arc_chr', int(ms_params[1]))
     if args.use_macs_chromosome_numbering: 
         setattr(args, 'howmany', sys.maxint)
+        if '-i' in ms_params:
+            args.howmany = int(ms_params[ms_params.index('-i')+1])
+        else:
+            args.howmany = 1
+            pass
+        if args.debug: print 'macs howmany', args.howmany
+        
+        setattr(args, 'reglen', int(ms_params[2]))
+        #print 'macs reglen', args.reglen
+
     else:
         setattr(args, 'howmany', int(ms_params[2]))
         pass
     ms_random_line = args.input_file.readline().strip()
+    # print 'skip', ms_random_line
     
     if args.pops == None and '-I' in ms_params:
         pop_pos = ms_params.index('-I')
@@ -186,9 +201,9 @@ if __name__ == "__main__":
     setattr(args, 'arc_chrs', range(args.pop_starts[args.arc_pop-1]+1-macs_chr_adjust, 
                                     args.pop_starts[args.arc_pop-1]+1-macs_chr_adjust+args.pop_sizes[args.arc_pop-1]))
     
-    if args.debug: print 'target_chrs', target_chrs
-    if args.debug: print 'all target_chrs', all_target_chrs
-    if args.debug: print 'reference_chrs', reference_chrs
+    #if args.debug: print 'target_chrs', target_chrs
+    #if args.debug: print 'all target_chrs', all_target_chrs
+    #if args.debug: print 'reference_chrs', reference_chrs
     if args.debug: print 'arc_pop', args.arc_pop
     if args.debug: print 'arc_chrs', args.arc_chrs
     if args.debug: print ms_params
@@ -230,9 +245,10 @@ if __name__ == "__main__":
 #         sys.exit(-1)
 #         pass
 
-    if args.debug: print 'getting pct arc per ind for %d chrs, with arc chr = %s, and target pop = %s (size %d)' % (args.num_inds, args.arc_chrs, target_chrs, len(all_target_chrs))
+    #if args.debug: print 'getting pct arc per ind for %d chrs, with arc chr = %s, and target pop = %s (size %d)' % (args.num_inds, args.arc_chrs, target_chrs, len(all_target_chrs))
 
-    chr_strs = [i+1-macs_chr_adjust for i in range(args.num_inds)]
+    # the chromosome numbers for all non-archaic chromosomes
+    chr_strs = [i+1-macs_chr_adjust for i in range(args.num_inds-1)]
     # print 'chr_avg_intr tot_intr avg_num_chrs target_bases reference_bases', ' '.join([str(k) for k in sorted(chr_strs)])
 
 
@@ -252,16 +268,17 @@ if __name__ == "__main__":
     both_target_pops_bases = 0
     #one_target_pop_bases = [0 for tp in args.target_pops]
 
+    # print chr_strs
     chr_counts = dict.fromkeys(chr_strs, 0)
 
 
     for sample in xrange(args.howmany):
 
         line = 'start'
-        while line != '':
+        while not args.use_macs_chromosome_numbering and line != '':
             #print sample, line
             line = args.input_file.readline()
-            #print " ->", sample, line
+            # print " ->", sample, line
             if line.strip().startswith('//'): break
             pass
 
@@ -278,14 +295,28 @@ if __name__ == "__main__":
         ## first read all of the associated trees
         while True:
             line = args.input_file.readline().strip()
-            if not line.startswith('['): break
+
+            if args.use_macs_chromosome_numbering and line.startswith('NEWICK'):
+                # trim off newick tag in macs format
+                # NEWICK_TREE:    [319]((((((1:0.0428386,10:0.0428386 ...
+                line = line[13:]
+            elif args.use_macs_chromosome_numbering and line != '':
+                continue
+            
+            elif not line.startswith('['): break
             
             ms_tree = line
-            # bases = re.findall(r'\[\d+\]', ms_tree)[0]
+            if args.debug: print ms_tree
+            # get bases including bracket, i.e., [142]
             bases = ms_tree[:ms_tree.index(']')+1]
-            # print 'bases', bases, bases2
+            # print bases, ms_tree
+            
+            # trim the bases from the tree (using the length of bases+brackets)
             ms_tree = ms_tree[len(bases):]
+
+            # get the int from within the brackets
             bases = int(bases[1:-1])
+            if args.debug: print bases, ms_tree
             
             # print
             # print bases, ms_tree
@@ -299,6 +330,12 @@ if __name__ == "__main__":
             num_intr_chrs = len(intr_chrs)
             if num_intr_chrs == 0:
                 current_pos += bases
+
+                if args.debug and args.use_macs_chromosome_numbering: print "current position; bases in tree; reglen:", current_pos, bases, args.reglen
+                elif args.debug: print "current position; bases in tree:", current_pos, bases
+
+                if args.use_macs_chromosome_numbering and current_pos == args.reglen:
+                    break
                 # if so, continue
                 continue
 
@@ -307,6 +344,7 @@ if __name__ == "__main__":
             if args.debug: print 'intr chrs:', intr_chrs
             for chrom in intr_chrs:
                 chr_counts[chrom] += bases
+                # print chrom, chr_counts[chrom], chr_counts
                 if len(chr_intr_regions[chrom]) > 0 and chr_intr_regions[chrom][-1][1] == current_pos:
                     chr_intr_regions[chrom][-1][1] = current_pos+bases
                 else:
@@ -341,8 +379,16 @@ if __name__ == "__main__":
             if args.debug: print 'running sum: %d' % (total_intr_bases)
             
             current_pos += bases
-            pass
 
+            if args.debug and args.use_macs_chromosome_numbering: print "current position; bases in tree; reglen:", current_pos, bases, args.reglen
+            elif args.debug: print "current position; bases in tree:", current_pos, bases
+
+            ## skip to next iteration if we've consumed all bases
+            if args.use_macs_chromosome_numbering and current_pos == args.reglen:
+                break
+
+            pass
+        
         
         
 
@@ -356,11 +402,18 @@ if __name__ == "__main__":
 
             for chrom in chr_intr_regions:
                 for (s,e) in chr_intr_regions[chrom]:
-                    print 'c_%d_%d_%d\t%d\t%d\tchrom_%d\tpop_%d\treg_%d\t%s\tINTR' % (sample, pop_mapping[chrom], chrom, s, e, chrom, pop_mapping[chrom], sample, args.iteration)
+                    print 'c_%d_%d_%d\t%d\t%d\tchrom_%d\tpop_%d\tsim_%d\t%s\tINTR' % (sample, pop_mapping[chrom], chrom, s, e, chrom, pop_mapping[chrom], sample, args.iteration)
                     pass
                 pass
             pass
 
+
+        ## print total number of bases per chromosome
+        if args.report_intr_bases_per_chr:
+            for chrom in chr_intr_regions:
+                print 'SIM_T', 'pop_%d' % pop_mapping[chrom], 'sim_%d' % sample, 'chrom_%d' % chrom, sum(e-s for (s,e) in chr_intr_regions[chrom])
+                pass
+            pass
         
 
 
@@ -368,7 +421,7 @@ if __name__ == "__main__":
 
     ## print total number of bases per chromosome
     if args.report_intr_bases_per_chr:
-        for chrom in chr_intr_regions:
+        for chrom in chr_counts:
             print 'TOTAL', 'pop_%d' % pop_mapping[chrom], 'chrom_%d' % chrom, chr_counts[chrom]
             pass
         pass
