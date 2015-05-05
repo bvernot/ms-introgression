@@ -105,6 +105,7 @@ if __name__ == "__main__":
     # parser.add_argument('-arc-pop', '--arc-pop', default=None, type=int)
     # parser.add_argument('-arc-pop-ms', '--arc-pop-ms', default=None, type=int, help='Sometimes we trick ms into thinking there are different pop orderings, but we still need to read the join commands to figure out when the archaic chromosome joins.  Give the "correct" pop here.')
     parser.add_argument('-total', '--report-intr-bases-per-chr', action = 'store_true')
+    parser.add_argument('-sim-total', '--report-intr-bases-per-chr-per-sim', action = 'store_true')
     parser.add_argument('-macs', '--use-macs-chromosome-numbering', action = 'store_true')
     parser.add_argument('-I', '--pops', default=None, type=int, nargs='+')
     # parser.add_argument('-tp', '--target-pops', required=True, type=int, nargs='+')
@@ -409,7 +410,7 @@ if __name__ == "__main__":
 
 
         ## print total number of bases per chromosome
-        if args.report_intr_bases_per_chr:
+        if args.report_intr_bases_per_chr_per_sim:
             for chrom in chr_intr_regions:
                 print 'SIM_T', 'pop_%d' % pop_mapping[chrom], 'sim_%d' % sample, 'chrom_%d' % chrom, sum(e-s for (s,e) in chr_intr_regions[chrom])
                 pass
