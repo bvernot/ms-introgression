@@ -411,7 +411,8 @@ if __name__ == "__main__":
 
         ## print total number of bases per chromosome
         if args.report_intr_bases_per_chr_per_sim:
-            for chrom in chr_intr_regions:
+            #for chrom in chr_intr_regions:
+            for chrom in chr_counts:
                 print 'SIM_T', 'pop_%d' % pop_mapping[chrom], 'sim_%d' % sample, 'chrom_%d' % chrom, sum(e-s for (s,e) in chr_intr_regions[chrom])
                 pass
             pass
